@@ -22,8 +22,7 @@ issue_ids_with_prefix = (title.scan(issue_regex) + body.scan(issue_regex)).flatt
 
 # Ánh xạ giữa repository GitHub và project Redmine (CẦN CẬP NHẬT)
 repo_to_project_mapping = {
-  'your-org/your-repo' => 'your-redmine-project-identifier',
-  'another-org/another-repo' => 'another-redmine-project'
+  'ledinhloc/TODOAPP' => 'demo1'
   # Thêm các ánh xạ khác nếu cần
 }
 
