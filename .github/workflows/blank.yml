@@ -1,48 +1,30 @@
-name: Jira CI/CD Integration
+name: Update Redmine Status on Pull Request
 
 on:
   pull_request:
-    types:
-      - closed
+    types: [opened, reopened, edited, synchronize, closed]
 
 jobs:
-  update-jira-and-slack:
-    if: github.event.pull_request.merged == true
-    name: Update Jira & Notify Slack
+  update_redmine_status:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Cần lịch sử đầy đủ cho việc so sánh commit
 
-    - name: Jira Login
-      uses: atlassian/gajira-login@v3
-      env:
-        JIRA_BASE_URL: https://student-team-tyqvtyie.atlassian.net
-        JIRA_USER_EMAIL: 22110369@student.hcmute.edu.vn
-        JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.x' # Thay đổi nếu cần
 
-    - name: Extract Issue Key from Pull Request Title
-      id: extract
-      run: |
-        echo "🔎 Extracting issue key from PR title: ${{ github.event.pull_request.title }}"
-        ISSUE_KEY=$(echo "${{ github.event.pull_request.title }}" | grep -oE '[A-Z]+-[0-9]+')
-        echo "✅ Found issue key: $ISSUE_KEY"
-        echo "issue=$ISSUE_KEY" >> $GITHUB_OUTPUT
+      - name: Install dependencies
+        run: |
+          bundle install --jobs 4 --retry 3
 
-    - name: Transition Jira Issue to Done
-      uses: atlassian/gajira-transition@v3
-      with:
-        issue: ${{ steps.extract.outputs.issue }}
-        transition: "Done"
-
-    - name: Notify Slack
-      if: ${{ steps.extract.outputs.issue != '' }}
-      uses: slackapi/slack-github-action@v1.24.0
-      with:
-        payload: |
-          {
-            "text": ":white_check_mark: Jira issue *${{ steps.extract.outputs.issue }}* has been closed after PR was merged!"
-          }
-      env:
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      - name: Update Redmine Status
+        env:
+          REDMINE_URL: ${{ secrets.REDMINE_URL }} # URL Redmine của bạn
+          REDMINE_API_KEY: ${{ secrets.REDMINE_API_KEY }} # API Key Redmine của bạn
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Token mặc định của GitHub Actions
+        run: ruby .github/workflows/scripts/update_redmine_status.rb "${{ github.event.pull_request.title }}" "${{ github.event.pull_request.body }}" "${{ github.event.pull_request.state }}" "${{ github.event.pull_request.merged }}" "${{ github.event.pull_request.html_url }}" "${{ github.event.pull_request.head.ref }}" "${{ github.event.pull_request.base.ref }}" "${{ github.repository }}"
