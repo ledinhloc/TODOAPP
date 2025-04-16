@@ -16,7 +16,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.x' # Thay đổi nếu cần
+          ruby-version: '3.2.8' # Thay đổi nếu cần
 
       - name: Install dependencies
         run: |
