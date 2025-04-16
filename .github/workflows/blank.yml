@@ -20,6 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          cd ${{ github.workspace }}
           bundle install --jobs 4 --retry 3
 
       - name: Update Redmine Status
@@ -27,4 +28,6 @@ jobs:
           REDMINE_URL: ${{ secrets.REDMINE_URL }} # URL Redmine của bạn
           REDMINE_API_KEY: ${{ secrets.REDMINE_API_KEY }} # API Key Redmine của bạn
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Token mặc định của GitHub Actions
-        run: ruby .github/workflows/scripts/update_redmine_status.rb "${{ github.event.pull_request.title }}" "${{ github.event.pull_request.body }}" "${{ github.event.pull_request.state }}" "${{ github.event.pull_request.merged }}" "${{ github.event.pull_request.html_url }}" "${{ github.event.pull_request.head.ref }}" "${{ github.event.pull_request.base.ref }}" "${{ github.repository }}"
+        run: |
+          cd ${{ github.workspace }}
+          ruby .github/workflows/scripts/update_redmine_status.rb "${{ github.event.pull_request.title }}" "${{ github.event.pull_request.body }}" "${{ github.event.pull_request.state }}" "${{ github.event.pull_request.merged }}" "${{ github.event.pull_request.html_url }}" "${{ github.event.pull_request.head.ref }}" "${{ github.event.pull_request.base.ref }}" "${{ github.repository }}"
